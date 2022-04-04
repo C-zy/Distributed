@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>SUPERY</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+	</head>
+
+	<body>
+		<div id="app">
+			<div class="card" v-if='isTxt'>{{txt}}</div>
+            <audio id="bgMusic" ref='audio' src="amy.wav" type="audio/wav"></audio>
+		</div>
+		<script>
+			new Vue({
+				el: '#app',
+				data: {
+					isTxt:false,
+					txt: '',
+					websocket:null,
+				},
+				created() {
+					this.getWebsocket()
+				},
+				methods: {
+					getWebsocket() {
+						this.websocket = new WebSocket("ws://192.168.1.4:8085");
+						this.websocket.onopen = () => {
+							console.log('websocket open');
+						}
+
+						this.websocket.onclose = () => {
+							console.log('服务器已断开');
+						}
+
+						this.websocket.onmessage = event => {
+							console.log(event.data);
+							if(event.data == 'l2'){
+								this.isTxt = true
+								this.txt = '欢迎回家'
+                                let audio = this.$refs.audio
+                                audio.play();
+							}
+						}
+					},
+					setCon(){
+						setTimeout(e => {
+							this.isTxt = false
+						},3000)
+					},
+				}
+			})
+		</script>
+	</body>
+	<style>
+        body{
+            padding: 0;
+            margin: 0;
+        }
+        #app{
+            width: 100%;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card{
+            font-size: 100px;
+            letter-spacing: 20px;
+            color: #99CCFF;
+        }
+	</style>
+</html>

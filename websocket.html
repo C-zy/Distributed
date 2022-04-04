@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>SUPERY</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+	</head>
+
+	<body>
+		<div id="app" :class="isConnect ? '' : 'pageAll'">
+			<div class="card" :class="isTxt ? 'sele':''" @click='clickDemo()'>{{txt}}</div>
+		</div>
+		<script>
+			new Vue({
+				el: '#app',
+				data: {
+					isConnect: false,
+					isTxt:true,
+					txt: '连接断开',
+					timely:null,
+					websocket:null,
+					num:0
+				},
+				created() {
+					this.setTime(true)
+				},
+				methods: {
+					getWebsocket() {
+						this.websocket = new WebSocket("ws://192.168.1.4:8085");
+						this.websocket.onopen = () => {
+							console.log('websocket open');
+							this.setTime(false)
+							this.isTxt = true
+							this.txt = '服务器连接成功'
+							this.setCon()
+						}
+
+						this.websocket.onclose = () => {
+							console.log('服务器已断开');
+							this.isConnect = false
+							this.isTxt = true
+						}
+
+						this.websocket.onmessage = event => {
+							console.log(event.data);
+							if(event.data == 's2'){
+								this.isConnect = true
+								this.isTxt = true
+								this.txt = '终端已连接'
+								this.setCon()
+							}else if(event.data == 'l2'){
+								this.isConnect = true
+								this.isTxt = true
+								this.txt = '执行指令'+event.data
+								this.setCon()
+							}
+						}
+					},
+					clickDemo(){
+						this.websocket.send('Hello!');
+					},
+					setCon(){
+						setTimeout(e => {
+							this.isTxt = false
+							this.isConnect = false
+						},3000)
+					},
+					setTime(e){
+						if(e){
+							this.timely = setInterval(e => {
+								this.getWebsocket()
+								this.num++
+								this.txt = '连接中...'
+								if(this.num >10){
+									clearInterval(this.timely)
+									this.txt = '连接断开'
+								}
+							},2000)
+						}else{
+							clearInterval(this.timely)
+						}
+					},
+				}
+			})
+		</script>
+	</body>
+	<style>
+		.pageAll {
+			filter: grayscale(100%);
+			-moz-filter: grayscale(100%);
+			-o-filter: grayscale(100%);
+			-webkit-filter: grayscale(1);
+		}
+
+		@property --rotate {
+			syntax: "<angle>";
+			initial-value: 132deg;
+			inherits: false;
+		}
+
+		:root {
+			--card-height: 65vh;
+			--card-width: calc(var(--card-height) / 1.5);
+		}
+
+
+		body {
+			min-height: 90vh;
+			background: #212534;
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+			padding-top: 8%;
+			box-sizing: border-box;
+		}
+
+
+		.card {
+			background: #191c29;
+			width: var(--card-width);
+			height: var(--card-height);
+			padding: 3px;
+			position: relative;
+			border-radius: 6px;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+			display: flex;
+			font-size: 1.5em;
+			color: rgb(88 199 250 / 0%);
+			cursor: pointer;
+			/* font-family: cursive; */
+		}
+
+		.card:hover {
+			color: rgb(88 199 250 / 100%);
+			transition: color 1s;
+		}
+
+		.card:hover:before,
+		.card:hover:after {
+			animation: none;
+			opacity: 0;
+		}
+
+
+		.card::before {
+			content: "";
+			width: 104%;
+			height: 102%;
+			border-radius: 8px;
+			background-image: linear-gradient(var(--rotate), #5ddcff, #3c67e3 43%, #4e00c2);
+			position: absolute;
+			z-index: -1;
+			top: -1%;
+			left: -2%;
+			animation: spin 2.5s linear infinite;
+		}
+
+		.card::after {
+			position: absolute;
+			content: "";
+			top: calc(var(--card-height) / 6);
+			left: 0;
+			right: 0;
+			z-index: -1;
+			height: 100%;
+			width: 100%;
+			margin: 0 auto;
+			transform: scale(0.8);
+			filter: blur(calc(var(--card-height) / 6));
+			background-image: linear-gradient(var(--rotate), #5ddcff, #3c67e3 43%, #4e00c2);
+			opacity: 1;
+			transition: opacity .5s;
+			animation: spin 2.5s linear infinite;
+		}
+
+		@keyframes spin {
+			0% {
+				--rotate: 0deg;
+			}
+
+			100% {
+				--rotate: 360deg;
+			}
+		}
+
+		.sele {
+			color: rgb(88 199 250 / 100%);
+			transition: color 1s;
+		}
+	</style>
+</html>
